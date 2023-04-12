@@ -38,10 +38,9 @@ static int *mandelbrot_set(int width, int height) {
 }
 
 static GByteArray *rgb_from_index(int *values, size_t length, guint8 *table) {
-  int i;
   GByteArray *rgbs;
   rgbs = g_byte_array_sized_new(length * BYTES_PER_R8G8B8);
-  for (i = 0; i < length; ++i) {
+  for (size_t i = 0; i < length; ++i) {
     g_byte_array_append(rgbs, table + values[i] * BYTES_PER_R8G8B8,
                         BYTES_PER_R8G8B8);
   }
@@ -66,7 +65,7 @@ static void add_pixel_picture(GtkPicture *picture) {
   gtk_picture_set_paintable(picture, GDK_PAINTABLE(texture));
 }
 
-static void activate(GtkApplication *app, gpointer user_data) {
+static void activate(GtkApplication *app, gpointer *userdata __attribute__((unused))) {
   GtkWidget *window;
   GtkWidget *picture;
 
