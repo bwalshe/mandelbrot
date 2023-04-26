@@ -161,4 +161,3 @@ int mbt_rubber_band_end_y(MbtRubberBand *rb) {
   return rb->end_y;
 }
 
-

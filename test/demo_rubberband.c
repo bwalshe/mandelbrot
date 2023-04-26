@@ -4,7 +4,7 @@
 
 static void
 print_selection (MbtRubberBand* band,
-		 gpointer	user_data)
+		 gpointer	user_data __attribute__((unused)))
 {
   printf("You selected (%d, %d) to  (%d, %d)\n", 
 	 mbt_rubber_band_start_x(band),
@@ -15,7 +15,7 @@ print_selection (MbtRubberBand* band,
 
 static void
 activate (GtkApplication* app,
-          gpointer        user_data)
+          gpointer        user_data __attribute__((unused)))
 {
   GtkWidget *window, *band;
 

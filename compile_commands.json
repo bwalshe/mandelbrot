@@ -1,7 +1,22 @@
 [
 {
-  "directory": "/home/brian/gtk/build",
-  "command": "/usr/bin/cc  -I/usr/include/gtk-4.0 -I/usr/include/pango-1.0 -I/usr/include/harfbuzz -I/usr/include/fribidi -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/uuid -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/graphene-1.0 -I/usr/lib/x86_64-linux-gnu/graphene-1.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -Wall -Wextra -Wpedantic -Werror -o CMakeFiles/mandelbrot.dir/src/mandelbrot.c.o -c /home/brian/gtk/src/mandelbrot.c",
-  "file": "/home/brian/gtk/src/mandelbrot.c"
+  "directory": "/home/brian/gtk/mandelbrot/build",
+  "command": "/usr/bin/cc  -I/usr/include/gtk-4.0 -I/usr/include/pango-1.0 -I/usr/include/harfbuzz -I/usr/include/fribidi -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/uuid -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/graphene-1.0 -I/usr/lib/x86_64-linux-gnu/graphene-1.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/home/brian/gtk/mandelbrot/src -Wall -Wextra -Wpedantic -o CMakeFiles/mandelbrot.dir/src/mandelbrot.c.o -c /home/brian/gtk/mandelbrot/src/mandelbrot.c",
+  "file": "/home/brian/gtk/mandelbrot/src/mandelbrot.c"
+},
+{
+  "directory": "/home/brian/gtk/mandelbrot/build",
+  "command": "/usr/bin/cc  -I/usr/include/gtk-4.0 -I/usr/include/pango-1.0 -I/usr/include/harfbuzz -I/usr/include/fribidi -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/uuid -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/graphene-1.0 -I/usr/lib/x86_64-linux-gnu/graphene-1.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/home/brian/gtk/mandelbrot/src -Wall -Wextra -Wpedantic -o CMakeFiles/mandelbrot.dir/src/rubberband.c.o -c /home/brian/gtk/mandelbrot/src/rubberband.c",
+  "file": "/home/brian/gtk/mandelbrot/src/rubberband.c"
+},
+{
+  "directory": "/home/brian/gtk/mandelbrot/build",
+  "command": "/usr/bin/cc  -I/usr/include/gtk-4.0 -I/usr/include/pango-1.0 -I/usr/include/harfbuzz -I/usr/include/fribidi -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/uuid -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/graphene-1.0 -I/usr/lib/x86_64-linux-gnu/graphene-1.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/home/brian/gtk/mandelbrot/src -Wall -Wextra -Wpedantic -o CMakeFiles/demo_rubberband.dir/test/demo_rubberband.c.o -c /home/brian/gtk/mandelbrot/test/demo_rubberband.c",
+  "file": "/home/brian/gtk/mandelbrot/test/demo_rubberband.c"
+},
+{
+  "directory": "/home/brian/gtk/mandelbrot/build",
+  "command": "/usr/bin/cc  -I/usr/include/gtk-4.0 -I/usr/include/pango-1.0 -I/usr/include/harfbuzz -I/usr/include/fribidi -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/uuid -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/graphene-1.0 -I/usr/lib/x86_64-linux-gnu/graphene-1.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/home/brian/gtk/mandelbrot/src -Wall -Wextra -Wpedantic -o CMakeFiles/demo_rubberband.dir/src/rubberband.c.o -c /home/brian/gtk/mandelbrot/src/rubberband.c",
+  "file": "/home/brian/gtk/mandelbrot/src/rubberband.c"
 }
 ]
