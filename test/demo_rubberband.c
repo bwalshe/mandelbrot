@@ -1,21 +1,20 @@
-#include <gtk/gtk.h>
 #include "rubberband.h"
-
+#include <gtk/gtk.h>
 
 static void
-print_selection (MbtRubberBand* band,
-		 gpointer	user_data __attribute__((unused)))
+print_selection (MbtRubberBand *band,
+                 gpointer user_data __attribute__ ((unused)))
 {
-  printf("You selected (%d, %d) to  (%d, %d)\n", 
-	 mbt_rubber_band_start_x(band),
-	 mbt_rubber_band_start_y(band),
-	 mbt_rubber_band_end_x(band),
-	 mbt_rubber_band_end_y(band));
+  printf ("You selected (%d, %d) to  (%d, %d)\n",
+          mbt_rubber_band_start_x (band),
+          mbt_rubber_band_start_y (band),
+          mbt_rubber_band_end_x (band),
+          mbt_rubber_band_end_y (band));
 }
 
 static void
-activate (GtkApplication* app,
-          gpointer        user_data __attribute__((unused)))
+activate (GtkApplication *app,
+          gpointer user_data __attribute__ ((unused)))
 {
   GtkWidget *window, *band;
 
@@ -23,14 +22,12 @@ activate (GtkApplication* app,
   gtk_window_set_title (GTK_WINDOW (window), "Window");
   gtk_window_set_default_size (GTK_WINDOW (window), 200, 200);
 
-  band = mbt_rubber_band_new();
-  g_signal_connect(band, "selection-complete", G_CALLBACK(print_selection), NULL); 
-  gtk_window_set_child(GTK_WINDOW(window), band);
+  band = mbt_rubber_band_new ();
+  g_signal_connect (band, "selection-complete", G_CALLBACK (print_selection), NULL);
+  gtk_window_set_child (GTK_WINDOW (window), band);
 
   gtk_widget_show (window);
 }
-
-
 
 int
 main (int argc, char **argv)
@@ -45,4 +42,3 @@ main (int argc, char **argv)
 
   return status;
 }
-
