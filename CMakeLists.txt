@@ -7,7 +7,8 @@ include_directories(${GTK_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src)
 link_directories(${GTK_LIBRARY_DIRS})
 
 
-add_executable(mandelbrot ${CMAKE_SOURCE_DIR}/src/mandelbrot.c 
+add_executable(mandelbrot ${CMAKE_SOURCE_DIR}/src/viewer.c 
+			  ${CMAKE_SOURCE_DIR}/src/mandelbrot.c 
 	                  ${CMAKE_SOURCE_DIR}/src/rubberband.c)
 target_link_libraries(mandelbrot ${GTK_LIBRARIES} m)
 target_compile_options(mandelbrot PRIVATE -Wall -Wextra -Wpedantic)

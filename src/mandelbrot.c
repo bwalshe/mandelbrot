@@ -1,52 +1,125 @@
+#include "mandelbrot.h"
+#include "gtk/gtkbinlayout.h"
 #include "rubberband.h"
-#include <complex.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <time.h>
 
-#define WIDTH 800
 #define BYTES_PER_R8G8B8 3
 
 typedef struct
 {
-  float rmin;
-  float rmax;
-  float imin;
-  float imax;
-} plane_t;
+  double complex a;
+  double complex b;
+} mbt_bounds_t;
 
-plane_t plane = { -2.0, 2.0, -2.0, 2.0 };
+struct _MbtMandelbrotView
+{
+  GtkWidget parent;
+  GtkPicture *picture;
 
-static void add_pixel_picture (GtkPicture *picture, plane_t plane);
+  mbt_bounds_t view_bounds;
+  int xresolution;
+  int yresolution;
+};
+
+G_DEFINE_TYPE (MbtMandelbrotView, mbt_mandelbrot_view, GTK_TYPE_WIDGET)
 
 static void
-scale_view (MbtRubberBand *band,
-            gpointer picture)
+draw_mandelbrot_to_picture (MbtMandelbrotView *self);
+
+static void
+mbt_mandelbrot_view_snapshot (GtkWidget *widget, GtkSnapshot *snapshot);
+
+static void
+mbt_mandelbrot_view_dispose (GObject *object);
+
+void
+mbt_mandelbrot_view_class_init (MbtMandelbrotViewClass *class)
 {
-  float plane_width, plane_height, selection_width, selection_height;
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
+  GObjectClass *object_class = G_OBJECT_CLASS (class);
+  widget_class->snapshot = mbt_mandelbrot_view_snapshot;
+  object_class->dispose = mbt_mandelbrot_view_dispose;
+  gtk_widget_class_set_layout_manager_type (widget_class, gtk_bin_layout_get_type ());
+}
 
-  plane_width = plane.rmax - plane.rmin;
-  plane_height = plane.imax - plane.imin;
-  selection_width = gtk_widget_get_width (GTK_WIDGET (band));
-  selection_height = gtk_widget_get_height (GTK_WIDGET (band));
+void
+mbt_mandelbrot_view_init (MbtMandelbrotView *self)
+{
+  self->picture = GTK_PICTURE (gtk_picture_new ());
+  self->view_bounds.a = -2.0 + I * 2.0;
+  self->view_bounds.b = 2.0 - I * 2.0;
+  self->xresolution = 0;
+  self->yresolution = 0;
+  gtk_widget_insert_after (GTK_WIDGET (self->picture), GTK_WIDGET (self), NULL);
+}
 
-  plane.rmin = plane.rmin + plane_width * mbt_rubber_band_start_x (band) / selection_width;
-  plane.imin = plane.imin + plane_height * mbt_rubber_band_start_y (band) / selection_height;
-  plane.rmax = plane.rmin + plane_width * mbt_rubber_band_end_x (band) / selection_width;
-  plane.imax = plane.imin + plane_height * mbt_rubber_band_end_y (band) / selection_height;
+GtkWidget *
+mbt_mandelbrot_view_new (void)
+{
+  return GTK_WIDGET (g_object_new (MBT_TYPE_MANDELBROT_VIEW, NULL));
+}
 
-  add_pixel_picture (GTK_PICTURE (picture), plane);
-  gtk_widget_queue_draw (GTK_WIDGET (picture));
+void
+mbt_mandelbrot_view_set_bounds (MbtMandelbrotView *self, double complex a, double complex b)
+{
+  self->view_bounds.a = a;
+  self->view_bounds.b = b;
+  draw_mandelbrot_to_picture (self);
+  gtk_widget_queue_draw (GTK_WIDGET (self->picture));
+}
+
+void
+mbt_mandelbrot_view_set_bounds_relative (MbtMandelbrotView *self, int xmin, int ymin, int xwidth, int ywidth)
+{
+  double xscale, yscale;
+  double complex plane_size, cornor;
+  cornor = self->view_bounds.a;
+  plane_size = self->view_bounds.b - self->view_bounds.a;
+  xscale = creal (plane_size) / gtk_widget_get_width (GTK_WIDGET (self));
+  yscale = cimag (plane_size) / gtk_widget_get_height (GTK_WIDGET (self));
+
+  mbt_mandelbrot_view_set_bounds (self,
+                                  cornor + xmin * xscale + I * ymin * yscale,
+                                  cornor + (xmin + xwidth) * xscale + I * (ymin + ywidth) * yscale);
+}
+
+void
+mbt_mandelbrot_view_set_resolution (MbtMandelbrotView *self, int xresolution, int yresolution)
+{
+  self->xresolution = xresolution;
+  self->yresolution = yresolution;
+  draw_mandelbrot_to_picture (self);
+  gtk_widget_queue_draw (GTK_WIDGET (self->picture));
+}
+
+static void
+mbt_mandelbrot_view_snapshot (GtkWidget *widget, GtkSnapshot *snapshot)
+{
+  MbtMandelbrotView *self = MBT_MANDELBROT_VIEW (widget);
+  gtk_widget_snapshot_child (widget, GTK_WIDGET (self->picture), snapshot);
+}
+
+static void
+mbt_mandelbrot_view_dispose (GObject *object)
+{
+  MbtMandelbrotView *self = MBT_MANDELBROT_VIEW (object);
+  GtkWidget *w = GTK_WIDGET (self->picture);
+  g_clear_pointer (&w, gtk_widget_unparent);
+
+  G_OBJECT_CLASS (mbt_mandelbrot_view_parent_class)->dispose (object);
 }
 
 static int *
-mandelbrot_set (plane_t plane, int width, int height)
+mandelbrot_set (mbt_bounds_t plane, int width, int height)
 {
-  float complex c, z;
+  double complex c, z, plane_size;
   int *mandelbrot;
   clock_t start, end;
 
   start = clock ();
+  plane_size = plane.b - plane.a;
 
   mandelbrot = malloc (width * height * sizeof (int));
   memset (mandelbrot, 0, width * height * sizeof (int));
@@ -56,11 +129,11 @@ mandelbrot_set (plane_t plane, int width, int height)
       for (int j = 0; j < height; ++j)
         {
           z = 0;
-          c = ((plane.rmax - plane.rmin) * i) / width + plane.rmin + I * (((plane.imax - plane.imin) * j) / height + plane.imin);
+          c = (creal (plane_size) * i) / width + creal (plane.a) + I * ((cimag (plane_size) * j) / height + cimag (plane.a));
           for (int k = 0; k < 100; ++k)
             {
               z = z * z + c;
-              if (cabsf (z) > 2.0)
+              if (cabs (z) > 2.0)
                 {
                   mandelbrot[i + j * width] = 1;
                   break;
@@ -90,56 +163,25 @@ rgb_from_index (int *values, size_t length, guint8 *table)
 }
 
 static void
-add_pixel_picture (GtkPicture *picture, plane_t plane)
+draw_mandelbrot_to_picture (MbtMandelbrotView *self)
 {
+  int width, height;
   GBytes *bytes;
   GdkTexture *texture;
   GByteArray *pixels;
   int *levels;
   guint8 table[6] = { 0, 0, 0, 255, 255, 255 };
 
-  levels = mandelbrot_set (plane, WIDTH, WIDTH);
-  pixels = rgb_from_index (levels, WIDTH * WIDTH, table);
+  width = self->xresolution;
+  height = self->yresolution;
+
+  levels = mandelbrot_set (self->view_bounds, width, height);
+  pixels = rgb_from_index (levels, width * height, table);
 
   bytes = g_byte_array_free_to_bytes (pixels);
   free (levels);
 
-  texture = gdk_memory_texture_new (WIDTH, WIDTH, GDK_MEMORY_R8G8B8, bytes,
-                                    WIDTH * BYTES_PER_R8G8B8);
-  gtk_picture_set_paintable (picture, GDK_PAINTABLE (texture));
-}
-
-static void
-activate (GtkApplication *app, gpointer *userdata __attribute__ ((unused)))
-{
-  GtkWidget *window;
-  GtkWidget *picture, *overlay, *rubber_band;
-
-  window = gtk_application_window_new (app);
-  gtk_window_set_title (GTK_WINDOW (window), "Mandelbrot Set");
-  gtk_window_set_default_size (GTK_WINDOW (window), WIDTH, WIDTH);
-  picture = gtk_picture_new ();
-  overlay = gtk_overlay_new ();
-  rubber_band = mbt_rubber_band_new ();
-  g_signal_connect (rubber_band, "selection-complete", G_CALLBACK (scale_view), picture);
-  add_pixel_picture (GTK_PICTURE (picture), plane);
-  gtk_overlay_set_child (GTK_OVERLAY (overlay), picture);
-  gtk_overlay_add_overlay (GTK_OVERLAY (overlay), rubber_band);
-  gtk_window_set_child (GTK_WINDOW (window), overlay);
-  gtk_widget_show (window);
-}
-
-int
-main (int argc, char **argv)
-{
-  GtkApplication *app;
-  int status;
-
-  app = gtk_application_new ("org.example.mandelbrot",
-                             G_APPLICATION_DEFAULT_FLAGS);
-  g_signal_connect (app, "activate", G_CALLBACK (activate), NULL);
-  status = g_application_run (G_APPLICATION (app), argc, argv);
-  g_object_unref (app);
-
-  return status;
+  texture = gdk_memory_texture_new (width, height, GDK_MEMORY_R8G8B8, bytes,
+                                    width * BYTES_PER_R8G8B8);
+  gtk_picture_set_paintable (self->picture, GDK_PAINTABLE (texture));
 }
