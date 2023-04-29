@@ -1,5 +1,5 @@
 #include "rubberband.h"
-#include "mandelbrot.h"
+#include "mandelbrotview.h"
 #include <gtk/gtk.h>
 
 

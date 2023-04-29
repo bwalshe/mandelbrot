@@ -1,5 +1,5 @@
-#ifndef __MBT_MANDELBROT_H__
-#define __MBT_MANDELBROT_H__
+#ifndef __MBT_MANDELBROTVIEW_H__
+#define __MBT_MANDELBROTVIEW_H__
 
 #include <gtk/gtk.h>
 
@@ -32,4 +32,4 @@ mbt_mandelbrot_view_pop_bounds (void);
 
 */
 
-#endif /* __MBT_MANDELBROT_H__ */
+#endif /* __MBT_MANDELBROTVIEW_H__ */

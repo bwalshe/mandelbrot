@@ -1,4 +1,4 @@
-#include "mandelbrot.h"
+#include "mandelbrotview.h"
 #include "gtk/gtkbinlayout.h"
 #include "rubberband.h"
 #include <gtk/gtk.h>
