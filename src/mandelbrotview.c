@@ -1,27 +1,28 @@
 #include "mandelbrotview.h"
-#include "gtk/gtkbinlayout.h"
+#include "mandelbrotfunction.h"
 #include "rubberband.h"
 #include <gtk/gtk.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 #define BYTES_PER_R8G8B8 3
-
-typedef struct
-{
-  double complex a;
-  double complex b;
-} mbt_bounds_t;
 
 struct _MbtMandelbrotView
 {
   GtkWidget parent;
   GtkPicture *picture;
+  MbtLevelFunc generator;
 
   mbt_bounds_t view_bounds;
+  int color_range;
+  guint8 *colors;
   int xresolution;
   int yresolution;
 };
+
+static guint8 default_colors[2 * BYTES_PER_R8G8B8] = { 0, 0, 0, 255, 255, 255 };
+static guint mbt_calculation_time_signal;
 
 G_DEFINE_TYPE (MbtMandelbrotView, mbt_mandelbrot_view, GTK_TYPE_WIDGET)
 
@@ -42,6 +43,10 @@ mbt_mandelbrot_view_class_init (MbtMandelbrotViewClass *class)
   widget_class->snapshot = mbt_mandelbrot_view_snapshot;
   object_class->dispose = mbt_mandelbrot_view_dispose;
   gtk_widget_class_set_layout_manager_type (widget_class, gtk_bin_layout_get_type ());
+  mbt_calculation_time_signal = g_signal_new (
+      "calculation-time", G_TYPE_FROM_CLASS (G_OBJECT_CLASS (class)),
+      G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS, 0, NULL,
+      NULL, NULL, G_TYPE_NONE, 1, G_TYPE_FLOAT);
 }
 
 void
@@ -52,6 +57,10 @@ mbt_mandelbrot_view_init (MbtMandelbrotView *self)
   self->view_bounds.b = 2.0 - I * 2.0;
   self->xresolution = 0;
   self->yresolution = 0;
+  self->color_range = 0;
+  self->colors = NULL;
+  self->generator = generate_mandelbrot_set;
+  mbt_mandelbrot_view_set_colors (self, default_colors, 2);
   gtk_widget_insert_after (GTK_WIDGET (self->picture), GTK_WIDGET (self), NULL);
 }
 
@@ -59,6 +68,23 @@ GtkWidget *
 mbt_mandelbrot_view_new (void)
 {
   return GTK_WIDGET (g_object_new (MBT_TYPE_MANDELBROT_VIEW, NULL));
+}
+
+void
+mbt_mandelbrot_view_set_level_func (MbtMandelbrotView *self, MbtLevelFunc fn)
+{
+  self->generator = fn;
+}
+
+void
+mbt_mandelbrot_view_set_colors (MbtMandelbrotView *self, guint8 *colors, int num_colors)
+{
+  size_t buffer_size = BYTES_PER_R8G8B8 * num_colors * sizeof (guint8);
+  if (self->colors)
+    free (self->colors);
+  self->colors = malloc (buffer_size);
+  memcpy (self->colors, colors, buffer_size);
+  self->color_range = num_colors;
 }
 
 void
@@ -107,56 +133,29 @@ mbt_mandelbrot_view_dispose (GObject *object)
   MbtMandelbrotView *self = MBT_MANDELBROT_VIEW (object);
   GtkWidget *w = GTK_WIDGET (self->picture);
   g_clear_pointer (&w, gtk_widget_unparent);
-
+  if (self->colors)
+    free (self->colors);
   G_OBJECT_CLASS (mbt_mandelbrot_view_parent_class)->dispose (object);
 }
 
-static int *
-mandelbrot_set (mbt_bounds_t plane, int width, int height)
-{
-  double complex c, z, plane_size;
-  int *mandelbrot;
-  clock_t start, end;
-
-  start = clock ();
-  plane_size = plane.b - plane.a;
-
-  mandelbrot = malloc (width * height * sizeof (int));
-  memset (mandelbrot, 0, width * height * sizeof (int));
-
-  for (int i = 0; i < width; ++i)
-    {
-      for (int j = 0; j < height; ++j)
-        {
-          z = 0;
-          c = (creal (plane_size) * i) / width + creal (plane.a) + I * ((cimag (plane_size) * j) / height + cimag (plane.a));
-          for (int k = 0; k < 100; ++k)
-            {
-              z = z * z + c;
-              if (cabs (z) > 2.0)
-                {
-                  mandelbrot[i + j * width] = 1;
-                  break;
-                }
-            }
-        }
-    }
-
-  end = clock ();
-  fprintf (stderr, "Set calculation took %f seconds.\n",
-           (double) (end - start) / CLOCKS_PER_SEC);
-
-  return mandelbrot;
-}
-
 static GByteArray *
-rgb_from_index (int *values, size_t length, guint8 *table)
+rgb_from_index (int *values, size_t length, guint8 *table, int color_range)
 {
+  int clipped_value;
   GByteArray *rgbs;
   rgbs = g_byte_array_sized_new (length * BYTES_PER_R8G8B8);
   for (size_t i = 0; i < length; ++i)
     {
-      g_byte_array_append (rgbs, table + values[i] * BYTES_PER_R8G8B8,
+      clipped_value = values[i];
+      if (clipped_value >= color_range)
+        {
+          clipped_value = color_range - 1;
+        }
+      else if (clipped_value < 0)
+        {
+          clipped_value = 0;
+        }
+      g_byte_array_append (rgbs, table + clipped_value * BYTES_PER_R8G8B8,
                            BYTES_PER_R8G8B8);
     }
   return rgbs;
@@ -170,13 +169,20 @@ draw_mandelbrot_to_picture (MbtMandelbrotView *self)
   GdkTexture *texture;
   GByteArray *pixels;
   int *levels;
-  guint8 table[6] = { 0, 0, 0, 255, 255, 255 };
+  clock_t start, end;
+
+  if (self->generator == NULL)
+    return;
 
   width = self->xresolution;
   height = self->yresolution;
 
-  levels = mandelbrot_set (self->view_bounds, width, height);
-  pixels = rgb_from_index (levels, width * height, table);
+  start = clock ();
+  levels = self->generator (self->view_bounds, width, height);
+  end = clock ();
+  g_signal_emit (self, mbt_calculation_time_signal, 0, (1.0 * end - start) / CLOCKS_PER_SEC);
+
+  pixels = rgb_from_index (levels, width * height, self->colors, self->color_range);
 
   bytes = g_byte_array_free_to_bytes (pixels);
   free (levels);

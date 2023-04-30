@@ -1,8 +1,8 @@
 #ifndef __MBT_MANDELBROTVIEW_H__
 #define __MBT_MANDELBROTVIEW_H__
 
+#include "mandelbrotfunction.h"
 #include <gtk/gtk.h>
-
 #include <complex.h>
 
 
@@ -11,6 +11,12 @@ G_DECLARE_FINAL_TYPE (MbtMandelbrotView, mbt_mandelbrot_view, MBT, MANDELBROT_VI
 
 GtkWidget *
 mbt_mandelbrot_view_new (void);
+
+void
+mbt_mandelbrot_view_set_level_func(MbtMandelbrotView *self, MbtLevelFunc fn);
+
+void
+mbt_mandelbrot_view_set_colors(MbtMandelbrotView *self, guint8 *colors, int num_colors);
 
 void
 mbt_mandelbrot_view_set_resolution (MbtMandelbrotView *self, int xresolution, int yresolution);

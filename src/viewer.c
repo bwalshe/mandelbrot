@@ -6,6 +6,12 @@
 #define WIDTH 800
 #define HEIGHT 800
 
+static void 
+print_calc_time(float seconds)
+{
+  printf("Calculation took %f seconds\n", seconds);
+}
+
 
 static void
 scale_view (MbtRubberBand *band,
@@ -33,6 +39,7 @@ activate (GtkApplication *app, gpointer *userdata __attribute__ ((unused)))
   overlay = gtk_overlay_new ();
   rubber_band = mbt_rubber_band_new ();
   g_signal_connect (rubber_band, "selection-complete", G_CALLBACK (scale_view), picture);
+  g_signal_connect(picture, "calculation-time", G_CALLBACK(print_calc_time), NULL);
   gtk_overlay_set_child (GTK_OVERLAY (overlay), picture);
   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), rubber_band);
   gtk_window_set_child (GTK_WINDOW (window), overlay);

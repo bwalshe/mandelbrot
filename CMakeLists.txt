@@ -8,6 +8,7 @@ link_directories(${GTK_LIBRARY_DIRS})
 
 
 add_executable(mandelbrot ${CMAKE_SOURCE_DIR}/src/viewer.c 
+			  ${CMAKE_SOURCE_DIR}/src/mandelbrotfunction.c
 			  ${CMAKE_SOURCE_DIR}/src/mandelbrotview.c 
 	                  ${CMAKE_SOURCE_DIR}/src/rubberband.c)
 target_link_libraries(mandelbrot ${GTK_LIBRARIES} m)
