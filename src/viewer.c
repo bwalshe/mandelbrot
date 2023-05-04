@@ -43,7 +43,7 @@ activate (GtkApplication *app, gpointer *userdata __attribute__ ((unused)))
   gtk_overlay_set_child (GTK_OVERLAY (overlay), picture);
   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), rubber_band);
   gtk_window_set_child (GTK_WINDOW (window), overlay);
-  gtk_widget_show (window);
+  gtk_window_present (GTK_WINDOW(window));
 }
 
 int

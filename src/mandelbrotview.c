@@ -183,11 +183,13 @@ draw_mandelbrot_to_picture (MbtMandelbrotView *self)
   g_signal_emit (self, mbt_calculation_time_signal, 0, (1.0 * end - start) / CLOCKS_PER_SEC);
 
   pixels = rgb_from_index (levels, width * height, self->colors, self->color_range);
-
-  bytes = g_byte_array_free_to_bytes (pixels);
   free (levels);
+  
+  bytes = g_byte_array_free_to_bytes (pixels);
 
   texture = gdk_memory_texture_new (width, height, GDK_MEMORY_R8G8B8, bytes,
                                     width * BYTES_PER_R8G8B8);
+  g_bytes_unref(bytes);
   gtk_picture_set_paintable (self->picture, GDK_PAINTABLE (texture));
+  g_object_unref(texture);
 }
