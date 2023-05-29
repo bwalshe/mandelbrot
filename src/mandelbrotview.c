@@ -53,8 +53,8 @@ void
 mbt_mandelbrot_view_init (MbtMandelbrotView *self)
 {
   self->picture = GTK_PICTURE (gtk_picture_new ());
-  self->view_bounds.a = -2.0 + I * 2.0;
-  self->view_bounds.b = 2.0 - I * 2.0;
+  self->view_bounds.a = -2.0 - I * 2.0;
+  self->view_bounds.b = 2.0 + I * 2.0;
   self->xresolution = 0;
   self->yresolution = 0;
   self->color_range = 0;
@@ -97,7 +97,7 @@ mbt_mandelbrot_view_set_bounds (MbtMandelbrotView *self, double complex a, doubl
 }
 
 void
-mbt_mandelbrot_view_set_bounds_relative (MbtMandelbrotView *self, int xmin, int ymin, int xwidth, int ywidth)
+mbt_mandelbrot_view_set_bounds_relative (MbtMandelbrotView *self, int xstart, int ystart, int xwidth, int ywidth)
 {
   double xscale, yscale;
   double complex plane_size, cornor;
@@ -107,8 +107,8 @@ mbt_mandelbrot_view_set_bounds_relative (MbtMandelbrotView *self, int xmin, int 
   yscale = cimag (plane_size) / gtk_widget_get_height (GTK_WIDGET (self));
 
   mbt_mandelbrot_view_set_bounds (self,
-                                  cornor + xmin * xscale + I * ymin * yscale,
-                                  cornor + (xmin + xwidth) * xscale + I * (ymin + ywidth) * yscale);
+                                  cornor + xstart * xscale + I * ystart * yscale,
+                                  cornor + (xstart + xwidth) * xscale + I * (ystart + ywidth) * yscale);
 }
 
 void
@@ -184,12 +184,12 @@ draw_mandelbrot_to_picture (MbtMandelbrotView *self)
 
   pixels = rgb_from_index (levels, width * height, self->colors, self->color_range);
   free (levels);
-  
+
   bytes = g_byte_array_free_to_bytes (pixels);
 
   texture = gdk_memory_texture_new (width, height, GDK_MEMORY_R8G8B8, bytes,
                                     width * BYTES_PER_R8G8B8);
-  g_bytes_unref(bytes);
+  g_bytes_unref (bytes);
   gtk_picture_set_paintable (self->picture, GDK_PAINTABLE (texture));
-  g_object_unref(texture);
+  g_object_unref (texture);
 }

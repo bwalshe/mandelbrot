@@ -54,8 +54,9 @@ mbt_rb_click_pressed (GtkGestureClick *gesture __attribute__ ((unused)),
                       int n_count __attribute__ ((unused)),
                       double widget_x,
                       double widget_y,
-                      MbtRubberBand *self)
+                      gpointer *data __attribute__ ((unused)))
 {
+  MbtRubberBand *self = MBT_RUBBER_BAND (gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture)));
   self->start_x = widget_x;
   self->start_y = widget_y;
   self->end_x = widget_x;
@@ -99,8 +100,8 @@ static void
 mbt_rubber_band_class_init (MbtRubberBandClass *class)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
-  widget_class->snapshot = mbt_rb_snapshot;
 
+  widget_class->snapshot = mbt_rb_snapshot;
   mbt_select_signal = g_signal_new (
       "selection-complete", G_TYPE_FROM_CLASS (G_OBJECT_CLASS (class)),
       G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS, 0, NULL,
@@ -153,13 +154,13 @@ mbt_rubber_band_start_y (MbtRubberBand *rb)
 }
 
 int
-mbt_rubber_band_end_x (MbtRubberBand *rb)
+mbt_rubber_band_width (MbtRubberBand *rb)
 {
   return rb->end_x;
 }
 
 int
-mbt_rubber_band_end_y (MbtRubberBand *rb)
+mbt_rubber_band_height (MbtRubberBand *rb)
 {
   return rb->end_y;
 }

@@ -8,8 +8,8 @@ print_selection (MbtRubberBand *band,
   printf ("You selected (%d, %d) to  (%d, %d)\n",
           mbt_rubber_band_start_x (band),
           mbt_rubber_band_start_y (band),
-          mbt_rubber_band_end_x (band),
-          mbt_rubber_band_end_y (band));
+          mbt_rubber_band_width (band),
+          mbt_rubber_band_height (band));
 }
 
 static void

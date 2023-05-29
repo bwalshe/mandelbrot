@@ -11,7 +11,7 @@ mbt_rubber_band_new (void);
 
 int mbt_rubber_band_start_x (MbtRubberBand *rb);
 int mbt_rubber_band_start_y (MbtRubberBand *rb);
-int mbt_rubber_band_end_x (MbtRubberBand *rb);
-int mbt_rubber_band_end_y (MbtRubberBand *rb);
+int mbt_rubber_band_width (MbtRubberBand *rb);
+int mbt_rubber_band_height (MbtRubberBand *rb);
 
 #endif /* __MBR_RUBBER_BAND_H__ */
